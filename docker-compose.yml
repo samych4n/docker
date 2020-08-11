@@ -1,0 +1,163 @@
+version: "3"
+services:
+  nginx: 
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx/confs:/etc/nginx/conf.d
+      - ./html:/var/www/html/     
+    ports:
+      - "80:80"
+    networks:
+      default:
+        aliases:
+          - site1.local
+          - site2.local
+          - site3.local
+          - site4.local
+          - site1-php5.local
+          - site2-php5.local
+          - site3-php5.local
+          - site4-php5.local
+          - site1-php71.local
+          - site2-php71.local
+          - site3-php71.local
+          - site4-php71.local
+    depends_on: 
+          - php5.6
+          - php7.0
+          - php7.1
+          - php7.2
+          - php7.3
+          - php7.4
+          - php8.0
+
+  php5.6:
+    build: ./php5.6
+    container_name: php5.6
+    volumes:
+      - ./html:/var/www/html/     
+    depends_on:
+      - redis6.0
+      - mailhog.padrao 
+      - mysql-8
+      - mongo-4
+
+  php7.0:
+    build: ./php7.0
+    container_name: php7.0
+    volumes:
+      - ./html:/var/www/html/     
+    depends_on:
+      - redis6.0
+      - mailhog.padrao 
+      - mysql-8
+      - mongo-4
+
+  php7.1:
+    build: ./php7.1
+    container_name: php7.1
+    volumes:
+      - ./html:/var/www/html/     
+    depends_on:
+      - redis6.0
+      - mailhog.padrao 
+      - mysql-8
+      - mongo-4
+
+  php7.2:
+    build: ./php7.2
+    container_name: php7.2
+    volumes:
+      - ./html:/var/www/html/     
+    depends_on:
+      - redis6.0
+      - mailhog.padrao 
+      - mysql-8
+      - mongo-4
+  
+  php7.3:
+    build: ./php7.3
+    container_name: php7.3
+    volumes:
+      - ./html:/var/www/html/     
+    depends_on:
+      - redis6.0
+      - mailhog.padrao 
+      - mysql-8
+      - mongo-4
+
+  php7.4:
+    build: ./php7.4
+    container_name: php7.4
+    volumes:
+      - ./html:/var/www/html/     
+    depends_on:
+      - redis6.0
+      - mailhog.padrao 
+      - mysql-8
+      - mongo-4
+  
+  php8.0:
+    build: ./php8.0
+    container_name: php8.0
+    volumes:
+      - ./html:/var/www/html/     
+    depends_on:
+      - redis6.0
+      - mailhog.padrao 
+      - mysql-8
+      - mongo-4
+
+  redis6.0:
+    image: redis:6.0.6-buster
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis6.0
+    ports:
+      - "6379:6379"
+
+  mysql-8:
+    image: mysql:8
+    hostname: mysql8.0
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: MyPassword
+
+  mysql-admin:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  mongo-4:
+    image: mongo:4
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: MyPassword
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: MyPassword
+      ME_CONFIG_MONGODB_SERVER: mongo-4
+
+  mailhog.padrao:
+    image: mailhog/mailhog
+    hostname: mailhog.padrao
+    expose:
+      - 1025
+      - 8025
+
+networks:
+  default:
+    ipam:
+       driver: default
+       config:
+          - subnet: 172.29.0.0/16
