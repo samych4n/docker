@@ -2,7 +2,7 @@ version: "3"
 services:
   nginx: 
     image: nginx:latest
-    container_name: nginx
+    container_name: ${PROJECT_NAME}_nginx
     volumes:
       - ./nginx/confs:/etc/nginx/conf.d
       - ./html:/var/www/html/     
@@ -30,103 +30,145 @@ services:
           - php7.2
           - php7.3
           - php7.4
+          - php7.4-laravel
           - php8.0
 
   php5.6:
     build: ./php5.6
-    container_name: php5.6
+    container_name: ${PROJECT_NAME}_php5.6
     volumes:
       - ./html:/var/www/html/     
     depends_on:
       - redis6.0
-      - mailhog.padrao 
+      - mailhog 
       - mysql-8
       - mongo-4
 
   php7.0:
     build: ./php7.0
-    container_name: php7.0
+    container_name: ${PROJECT_NAME}_php7.0
     volumes:
       - ./html:/var/www/html/     
     depends_on:
       - redis6.0
-      - mailhog.padrao 
+      - mailhog 
       - mysql-8
       - mongo-4
 
   php7.1:
     build: ./php7.1
-    container_name: php7.1
+    container_name: ${PROJECT_NAME}_php7.1
     volumes:
       - ./html:/var/www/html/     
     depends_on:
       - redis6.0
-      - mailhog.padrao 
+      - mailhog 
       - mysql-8
       - mongo-4
 
   php7.2:
     build: ./php7.2
-    container_name: php7.2
+    container_name: ${PROJECT_NAME}_php7.2
     volumes:
       - ./html:/var/www/html/     
     depends_on:
       - redis6.0
-      - mailhog.padrao 
+      - mailhog 
       - mysql-8
       - mongo-4
   
   php7.3:
     build: ./php7.3
-    container_name: php7.3
+    container_name: ${PROJECT_NAME}_php7.3
     volumes:
       - ./html:/var/www/html/     
     depends_on:
       - redis6.0
-      - mailhog.padrao 
+      - mailhog 
       - mysql-8
       - mongo-4
 
   php7.4:
     build: ./php7.4
-    container_name: php7.4
+    container_name: ${PROJECT_NAME}_php7.4
     volumes:
       - ./html:/var/www/html/     
     depends_on:
       - redis6.0
-      - mailhog.padrao 
+      - mailhog 
+      - mysql-8
+      - mongo-4
+
+  php7.4-laravel:
+    build: ./php7.4-laravel
+    container_name: ${PROJECT_NAME}_php7.4-laravel
+    environment:
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_URL: "http://localhost"
+
+      DB_CONNECTION: mysql
+      DB_HOST: ${MYSQL_HOST}
+      DB_PORT: ${MYSQL_PORT}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+
+      BROADCAST_DRIVER: log
+      CACHE_DRIVER: file
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: file
+      SESSION_LIFETIME: 120
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: ${REDIS_PORT}
+
+      MAIL_MAILER: smtp
+      MAIL_HOST: ${MAILHOG_HOST}
+      MAIL_PORT: 2525
+      MAIL_USERNAME: null
+      MAIL_PASSWORD: null
+      MAIL_ENCRYPTION: null
+      MAIL_FROM_ADDRESS: null
+
+    volumes:
+      - ./html:/var/www/html/     
+    depends_on:
+      - redis6.0
+      - mailhog 
       - mysql-8
       - mongo-4
   
   php8.0:
     build: ./php8.0
-    container_name: php8.0
+    container_name: ${PROJECT_NAME}_php8.0
     volumes:
       - ./html:/var/www/html/     
     depends_on:
       - redis6.0
-      - mailhog.padrao 
+      - mailhog 
       - mysql-8
       - mongo-4
 
   redis6.0:
     image: redis:6.0.6-buster
+    container_name: ${REDIS_HOST}
     command: ["redis-server", "--appendonly", "yes"]
-    hostname: redis6.0
-    ports:
-      - "6379:6379"
 
   mysql-8:
     image: mysql:8
-    hostname: mysql8.0
+    container_name: ${MYSQL_HOST}
     command: --default-authentication-plugin=mysql_native_password
     ports:
-      - "3306:3306"
+      - "${MYSQL_PORT}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: MyPassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
   mysql-admin:
     image: adminer
+    container_name: ${PROJECT_NAME}_adminer
     restart: always
     ports:
       - 8080:8080
@@ -134,12 +176,14 @@ services:
   mongo-4:
     image: mongo:4
     restart: always
+    container_name: ${MONGO_HOST}
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: MyPassword
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
 
   mongo-express:
     image: mongo-express
+    container_name: ${PROJECT_NAME}_mongo_express
     restart: always
     ports:
       - 8081:8081
@@ -148,16 +192,9 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: MyPassword
       ME_CONFIG_MONGODB_SERVER: mongo-4
 
-  mailhog.padrao:
+  mailhog:
     image: mailhog/mailhog
-    hostname: mailhog.padrao
+    container_name: ${MAILHOG_HOST}
     expose:
       - 1025
       - 8025
-
-networks:
-  default:
-    ipam:
-       driver: default
-       config:
-          - subnet: 172.29.0.0/16
